@@ -11,41 +11,27 @@ mod testutils;
 #[derive(Clone)]
 #[contracttype]
 pub enum DataKey {
-    // List of contributors
-    Contributors(Vec<Address>),
-    ContributorsCount(u32),
+    // Money
+    Balance(i128),
+    Target(i128),
+
+    // List of contributors maps address to amount pledged
+    Contributors(Vec<(Address, i128)>),
+
+    // List of Annotators
+    AnnotatorsCount(u32),
+    Annotators(Vec<Address>),
 
     // Initiative parameters
-    Budget(i128),
-    RequiredContributorsCount(u32),
     DataPoints(Vec<String>),
     Annotations(Vec<String>),
-}
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[repr(u32)]
-pub enum State {
-    Running = 0,
-    Success = 1,
-    Expired = 2,
+    // Funding status
+    State(u32),
 }
 
 fn get_ledger_timestamp(e: &Env) -> u64 {
     e.ledger().timestamp()
-}
-
-fn get_deadline(e: &Env) -> u64 {
-    e.storage()
-        .instance()
-        .get::<_, u64>(&DataKey::Deadline)
-        .expect("not initialized")
-}
-
-fn get_started(e: &Env) -> u64 {
-    e.storage()
-        .instance()
-        .get::<_, u64>(&DataKey::Started)
-        .expect("not initialized")
 }
 
 fn get_target_amount(e: &Env) -> i128 {
@@ -55,17 +41,14 @@ fn get_target_amount(e: &Env) -> i128 {
         .expect("not initialized")
 }
 
-fn get_token(e: &Env) -> Address {
-    e.storage()
-        .instance()
-        .get::<_, Address>(&DataKey::Token)
-        .expect("not initialized")
-}
-
 fn get_user_deposited(e: &Env, user: &Address) -> i128 {
     e.storage()
         .instance()
-        .get::<_, i128>(&DataKey::User(user.clone()))
+        .get::<_, Vec<(Address, i128)>>(&DataKey::Contributors)
+        .expect("not initialized")
+        .iter()
+        .find(|(addr, _)| addr == user)
+        .map(|(_, amount)| amount) // Changed from *amount to amount
         .unwrap_or(0)
 }
 
