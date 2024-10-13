@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use super::testutils::{register_test_contract as register_crowdfund, Crowdfund};
+use super::testutils::{register_test_contract as register_crowdfund, DataAnnotate};
 use soroban_sdk::{
     testutils::{Address as AddressTestTrait, Events, Ledger},
     token, vec, Address, Env, IntoVal, Symbol, Val, Vec,
@@ -12,9 +12,9 @@ fn create_crowdfund_contract(
     deadline: u64,
     target_amount: &i128,
     token: &Address,
-) -> (Address, Crowdfund) {
+) -> (Address, DataAnnotate) {
     let id = register_crowdfund(e);
-    let crowdfund = Crowdfund::new(e, id.clone());
+    let crowdfund = DataAnnotate::new(e, id.clone());
     crowdfund
         .client()
         .initialize(recipient, &deadline, target_amount, token);
@@ -33,7 +33,7 @@ struct Setup<'a> {
     user1: Address,
     user2: Address,
     token: token::Client<'a>,
-    crowdfund: Crowdfund,
+    crowdfund: DataAnnotate,
     crowdfund_id: Address,
 }
 
@@ -76,7 +76,7 @@ impl Setup<'_> {
         token_admin.mock_all_auths().mint(&user1, &10);
         token_admin.mock_all_auths().mint(&user2, &8);
 
-        crowdfund.client().mock_all_auths().deposit(&user1, &10);
+        crowdfund.client().mock_all_auths().contribute(&user1, &10);
 
         Self {
             env: e,
@@ -99,7 +99,7 @@ fn test_expired() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.user1);
+        .submit(&setup.user1);
 
     assert_eq!(setup.token.balance(&setup.user1), 10);
     assert_eq!(setup.token.balance(&setup.crowdfund_id), 0);
@@ -112,12 +112,12 @@ fn test_events() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user2, &5);
+        .contribute(&setup.user2, &5);
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user2, &3);
+        .contribute(&setup.user2, &3);
 
     let mut crowd_fund_events: Vec<(Address, soroban_sdk::Vec<Val>, Val)> = vec![&setup.env];
 
@@ -167,7 +167,7 @@ fn test_success() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user2, &5);
+        .contribute(&setup.user2, &5);
 
     assert_eq!(setup.token.mock_all_auths().balance(&setup.user1), 0);
     assert_eq!(setup.token.mock_all_auths().balance(&setup.user2), 3);
@@ -181,7 +181,7 @@ fn test_success() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
 
     assert_eq!(setup.token.mock_all_auths().balance(&setup.user1), 0);
     assert_eq!(setup.token.mock_all_auths().balance(&setup.user2), 3);
@@ -197,7 +197,7 @@ fn sale_still_running() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
 }
 
 #[test]
@@ -208,14 +208,14 @@ fn sale_successful_only_recipient() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user2, &5);
+        .contribute(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.user1);
+        .submit(&setup.user1);
 }
 
 #[test]
@@ -226,38 +226,38 @@ fn sale_successful_non_recipient_still_denied_after_withdrawal() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user2, &5);
+        .contribute(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.user1);
+        .submit(&setup.user1);
 }
 
 #[test]
 #[should_panic(expected = "sale was successful, recipient has withdrawn funds already")]
 fn sale_successful_recipient_withdraws_only_once() {
     let setup = Setup::new();
-    setup.crowdfund.client().deposit(&setup.user2, &5);
+    setup.crowdfund.client().contribute(&setup.user2, &5);
     advance_ledger(&setup.env, 10);
 
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
 }
 
 #[test]
@@ -270,12 +270,12 @@ fn sale_expired_recipient_not_allowed() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.user1);
+        .submit(&setup.user1);
     setup
         .crowdfund
         .client()
         .mock_all_auths()
-        .withdraw(&setup.recipient);
+        .submit(&setup.recipient);
 }
 
 #[test]
@@ -288,5 +288,5 @@ fn sale_not_running() {
         .crowdfund
         .client()
         .mock_all_auths()
-        .deposit(&setup.user1, &1);
+        .contribute(&setup.user1, &1);
 }

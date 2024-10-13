@@ -5,15 +5,15 @@ use crate::CrowdfundClient;
 use soroban_sdk::{Address, Env};
 
 pub fn register_test_contract(e: &Env) -> Address {
-    e.register_contract(None, crate::Crowdfund {})
+    e.register_contract(None, crate::DataAnnotate {})
 }
 
-pub struct Crowdfund {
+pub struct DataAnnotate {
     env: Env,
     contract_id: Address,
 }
 
-impl Crowdfund {
+impl DataAnnotate {
     #[must_use]
     pub fn client(&self) -> CrowdfundClient {
         CrowdfundClient::new(&self.env, &self.contract_id)
