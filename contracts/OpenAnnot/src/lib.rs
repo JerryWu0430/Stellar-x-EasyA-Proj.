@@ -308,12 +308,11 @@ impl DataAnnotate {
                 e.storage().instance().set(&DataKey::DataPoints, &data_points);
                 transfer(&e, &to, &1);
                 // check balance after transfer and if it's 0, we change state.
-
+                get_state(&e);
             }
             State::Success => {
                 // Do some checks to make sure the user has annotated.
                
-                
                 let balance = get_user_deposited(&e, &to);
                 set_user_deposited(&e, &to, &0);
                 transfer(&e, &to, &balance);

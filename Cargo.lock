@@ -186,14 +186,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crowdfund"
-version = "0.0.0"
-dependencies = [
- "rand 0.7.3",
- "soroban-sdk",
-]
-
-[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -285,6 +277,14 @@ dependencies = [
  "darling_core",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "data_annot"
+version = "0.0.0"
+dependencies = [
+ "rand 0.7.3",
+ "soroban-sdk",
 ]
 
 [[package]]
