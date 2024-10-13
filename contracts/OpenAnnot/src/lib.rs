@@ -231,8 +231,16 @@ impl DataAnnotate {
     
     }
 
-    pub fn get_project_ids(e: Env,) -> Vec<u32> {
-        e.storage().instance().get::<_, Vec<u32>>(&DataKey::ProjectIDs).unwrap()
+   
+
+    pub fn get_projects(e:Env) -> Vec<Project> {
+        let mut projects: Vec<Project> = Vec::new(&e);
+        let project_ids: Vec<u32> = e.storage().instance().get::<_,Vec<u32>>(&DataKey::ProjectIDs).unwrap_or(Vec::new(&e));
+        for project_id in project_ids.iter() {
+            let project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id.clone())).unwrap();
+            projects.push_back(project);
+        }
+        projects
     }
    
     pub fn deadline(e: Env, project_id: u32) -> u64 {
