@@ -1,5 +1,5 @@
 #![no_std]
-use core::str;
+use core::{f32::consts::E, str};
 
 use soroban_sdk::{
     contract, contractimpl, contractmeta, contracttype, token, Address, BytesN, ConversionError,
@@ -217,6 +217,13 @@ contractmeta!(
     val = "DataAnnotate Contract that help CrowdFund and Data Annotate"
 );
 
+fn get_project_ids(e: Env) -> Vec<u32> {
+    e.storage()
+        .instance()
+        .get::<_, Vec<u32>>(&DataKey::ProjectIDs)
+        .unwrap()
+}
+
 #[contract]
 struct DataAnnotate;
 
@@ -283,11 +290,18 @@ impl DataAnnotate {
             .set(&DataKey::ProjectIDs, &project_ids);
     }
 
-    pub fn get_project_ids(e: Env) -> Vec<u32> {
-        e.storage()
-            .instance()
-            .get::<_, Vec<u32>>(&DataKey::ProjectIDs)
-            .unwrap()
+    pub fn get_projects(e: Env) -> Vec<Project> {
+        let mut projects: Vec<Project> = Vec::new(&e);
+        let project_ids = get_project_ids(e.clone());
+        for project_id in project_ids.iter() {
+            let project = e
+                .storage()
+                .instance()
+                .get::<_, Project>(&DataKey::Project(project_id.clone()))
+                .unwrap();
+            projects.push_back(project);
+        }
+        projects
     }
 
     pub fn deadline(e: Env, project_id: u32) -> u64 {
