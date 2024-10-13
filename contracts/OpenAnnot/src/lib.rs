@@ -1,8 +1,9 @@
 #![no_std]
-use core::{ str};
+use core::str;
 
 use soroban_sdk::{
-    contract, contractimpl, contractmeta, contracttype, token,  Address, BytesN, ConversionError, Env, IntoVal, Map, Symbol, TryFromVal, Val, Vec
+    contract, contractimpl, contractmeta, contracttype, token, Address, BytesN, ConversionError,
+    Env, IntoVal, Map, Symbol, TryFromVal, Val, Vec,
 };
 
 mod events;
@@ -35,28 +36,24 @@ pub struct Project {
     pub name: Symbol,
     pub description: Symbol,
     pub recipient: Address,
-    pub started:u64,
+    pub started: u64,
     pub deadline: u64,
     pub target_amount: i128,
     pub current_amount: i128,
-    pub data_points: Map<Symbol,DataPoint>,
-    pub contributors_contribution_map: Map<Address,i128>,
-    pub annotators_earning_map: Map<Address,i128>,
+    pub data_points: Map<Symbol, DataPoint>,
+    pub contributors_contribution_map: Map<Address, i128>,
+    pub annotators_earning_map: Map<Address, i128>,
     pub state: State,
-    
 }
-
-
 
 #[contracttype]
 #[derive(Clone)]
 
 pub enum DataKey {
-     Project(u32),
-     ProjectIDs,
-     ProjectCount
+    Project(u32),
+    ProjectIDs,
+    ProjectCount,
 }
-
 
 #[contracttype]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -65,53 +62,63 @@ pub enum State {
     Funding = 0,
     Annotating = 1,
     Success = 2,
-    Expired= 3,
+    Expired = 3,
 }
 
 fn get_ledger_timestamp(e: &Env) -> u64 {
     e.ledger().timestamp()
 }
 
-fn get_recipient(e: &Env,project_id: u32) -> Address {
-    return e.storage()
+fn get_recipient(e: &Env, project_id: u32) -> Address {
+    return e
+        .storage()
         .instance()
         .get::<_, Project>(&DataKey::Project(project_id))
-        .unwrap().recipient;
+        .unwrap()
+        .recipient;
 }
 
-fn get_deadline(e: &Env,project_id: u32) -> u64 {
-   return e.storage()
+fn get_deadline(e: &Env, project_id: u32) -> u64 {
+    return e
+        .storage()
         .instance()
         .get::<_, Project>(&DataKey::Project(project_id))
-        .unwrap().deadline;
+        .unwrap()
+        .deadline;
 }
 
-
-fn get_target_amount(e: &Env,project_id: u32) -> i128 {
-   return e.storage()
+fn get_target_amount(e: &Env, project_id: u32) -> i128 {
+    return e
+        .storage()
         .instance()
         .get::<_, Project>(&DataKey::Project(project_id))
-        .expect("not initialized").target_amount;
+        .expect("not initialized")
+        .target_amount;
 }
 
-fn get_user_deposited(e: &Env,adr: &Address, project_id: u32) -> i128 {
-    let user_deposited = e.storage()
+fn get_user_deposited(e: &Env, adr: &Address, project_id: u32) -> i128 {
+    let user_deposited = e
+        .storage()
         .instance()
-        .get::<_, Project>(&DataKey::Project(project_id)).unwrap().contributors_contribution_map.get(adr.clone()).unwrap_or(0);
+        .get::<_, Project>(&DataKey::Project(project_id))
+        .unwrap()
+        .contributors_contribution_map
+        .get(adr.clone())
+        .unwrap_or(0);
     return user_deposited;
-
 }
 
-fn get_balance(e: &Env, project_id:u32) -> i128 {
-    return e.storage()
+fn get_balance(e: &Env, project_id: u32) -> i128 {
+    return e
+        .storage()
         .instance()
         .get::<_, Project>(&DataKey::Project(project_id))
-        .unwrap().current_amount;
-
+        .unwrap()
+        .current_amount;
 }
 
-fn target_reached(e: &Env, token_id: &Address,project_id: u32) -> bool {
-    let target_amount = get_target_amount(e,project_id);
+fn target_reached(e: &Env, token_id: &Address, project_id: u32) -> bool {
+    let target_amount = get_target_amount(e, project_id);
     let token_balance = get_balance(e, project_id);
 
     if token_balance >= target_amount {
@@ -120,48 +127,82 @@ fn target_reached(e: &Env, token_id: &Address,project_id: u32) -> bool {
     false
 }
 
-
-
-fn get_state(e: &Env, project_id:u32) -> State {
-    let deadline = get_deadline(e,project_id);
+fn get_state(e: &Env, project_id: u32) -> State {
+    let deadline = get_deadline(e, project_id);
     let token_id = e.current_contract_address();
     let current_timestamp = get_ledger_timestamp(e);
-    
-    let current_state = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap().state;
-    if(current_state == State::Expired) {
+
+    let current_state = e
+        .storage()
+        .instance()
+        .get::<_, Project>(&DataKey::Project((project_id)))
+        .unwrap()
+        .state;
+    if (current_state == State::Expired) {
         return current_state;
     }
-    if(current_state == State::Funding) {
-        if target_reached(e, &token_id,project_id) {
-            let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap();
+    if (current_state == State::Funding) {
+        if target_reached(e, &token_id, project_id) {
+            let mut project = e
+                .storage()
+                .instance()
+                .get::<_, Project>(&DataKey::Project((project_id)))
+                .unwrap();
             project.state = State::Annotating;
-            e.storage().instance().set(&DataKey::Project(project_id), &project);
+            e.storage()
+                .instance()
+                .set(&DataKey::Project(project_id), &project);
         };
         if current_timestamp > deadline {
-            let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap();
+            let mut project = e
+                .storage()
+                .instance()
+                .get::<_, Project>(&DataKey::Project((project_id)))
+                .unwrap();
             project.state = State::Expired;
-            e.storage().instance().set(&DataKey::Project(project_id), &project);
+            e.storage()
+                .instance()
+                .set(&DataKey::Project(project_id), &project);
         };
     }
-    if(current_state == State::Annotating) {
-        if get_balance(e, project_id.clone()) < 1  {
-            let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap();
+    if (current_state == State::Annotating) {
+        if get_balance(e, project_id.clone()) < 1 {
+            let mut project = e
+                .storage()
+                .instance()
+                .get::<_, Project>(&DataKey::Project((project_id)))
+                .unwrap();
             project.state = State::Success;
-            e.storage().instance().set(&DataKey::Project(project_id), &project);
+            e.storage()
+                .instance()
+                .set(&DataKey::Project(project_id), &project);
         };
     }
-    let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap();
+    let mut project = e
+        .storage()
+        .instance()
+        .get::<_, Project>(&DataKey::Project((project_id)))
+        .unwrap();
     project.state
 }
 
 fn set_user_deposited(e: &Env, user: &Address, amount: &i128, project_id: u32) {
-    let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project((project_id))).unwrap();
-    let current_contributions = project.contributors_contribution_map.get(user.clone()).unwrap_or(0);
-    project.contributors_contribution_map.set(user.clone(), current_contributions + amount);
-    e.storage().instance().set(&DataKey::Project(project_id), &project);
-   
+    let mut project = e
+        .storage()
+        .instance()
+        .get::<_, Project>(&DataKey::Project((project_id)))
+        .unwrap();
+    let current_contributions = project
+        .contributors_contribution_map
+        .get(user.clone())
+        .unwrap_or(0);
+    project
+        .contributors_contribution_map
+        .set(user.clone(), current_contributions + amount);
+    e.storage()
+        .instance()
+        .set(&DataKey::Project(project_id), &project);
 }
-
 
 // Transfer tokens from the contract to the recipient
 fn transfer(e: &Env, to: &Address, amount: &i128) {
@@ -191,120 +232,164 @@ impl DataAnnotate {
         name: Symbol,
         description: Symbol,
     ) {
-        let mut project_count: u32 = e.storage().instance().get::<_, u32>(&DataKey::ProjectCount).unwrap_or(0);
+        let mut project_count: u32 = e
+            .storage()
+            .instance()
+            .get::<_, u32>(&DataKey::ProjectCount)
+            .unwrap_or(0);
         let id = project_count;
         project_count += 1;
-        let mut data_points : Map<Symbol,DataPoint> = Map ::new(&e);
+        let mut data_points: Map<Symbol, DataPoint> = Map::new(&e);
         for cid in data_point_cids.iter() {
             data_points.set(
                 cid.clone(),
                 DataPoint {
-                    cid: cid.clone(), 
-                    annotated: false,  
-                    annotations: Vec::new(&e), 
+                    cid: cid.clone(),
+                    annotated: false,
+                    annotations: Vec::new(&e),
                 },
             );
         }
-        let contributors_contribution_map : Map<Address,i128>= Map::new(&e);
-        let annotators_earnings_map : Map<Address,i128>= Map::new(&e);
+        let contributors_contribution_map: Map<Address, i128> = Map::new(&e);
+        let annotators_earnings_map: Map<Address, i128> = Map::new(&e);
 
         let project = Project {
-            id:id,
-            name:name,
+            id: id,
+            name: name,
             description: description,
             recipient: recipient,
             state: State::Funding,
             started: get_ledger_timestamp(&e),
             contributors_contribution_map: contributors_contribution_map,
             annotators_earning_map: annotators_earnings_map,
-            deadline:deadline,
+            deadline: deadline,
             target_amount: target_amount,
             current_amount: 0,
-            data_points:data_points,
+            data_points: data_points,
         };
         e.storage().instance().set(&DataKey::Project(id), &project);
-        e.storage().instance().set(&DataKey::ProjectCount, &project_count);
+        e.storage()
+            .instance()
+            .set(&DataKey::ProjectCount, &project_count);
 
-        let mut project_ids: Vec<u32> = e.storage().instance().get::<_,Vec<u32>>(&DataKey::ProjectIDs).unwrap_or(Vec::new(&e));
+        let mut project_ids: Vec<u32> = e
+            .storage()
+            .instance()
+            .get::<_, Vec<u32>>(&DataKey::ProjectIDs)
+            .unwrap_or(Vec::new(&e));
         project_ids.push_back(id);
-        e.storage().instance().set(&DataKey::ProjectIDs, &project_ids);
-    
+        e.storage()
+            .instance()
+            .set(&DataKey::ProjectIDs, &project_ids);
     }
 
-    pub fn get_project_ids(e: Env,) -> Vec<u32> {
-        e.storage().instance().get::<_, Vec<u32>>(&DataKey::ProjectIDs).unwrap()
+    pub fn get_project_ids(e: Env) -> Vec<u32> {
+        e.storage()
+            .instance()
+            .get::<_, Vec<u32>>(&DataKey::ProjectIDs)
+            .unwrap()
     }
-   
+
     pub fn deadline(e: Env, project_id: u32) -> u64 {
         get_deadline(&e, project_id)
     }
 
-
     pub fn state(e: Env, project_id: u32) -> u32 {
-        get_state(&e,project_id) as u32
+        get_state(&e, project_id) as u32
     }
 
-    pub fn target(e: Env,project_id: u32) -> i128 {
-        get_target_amount(&e,project_id)
+    pub fn target(e: Env, project_id: u32) -> i128 {
+        get_target_amount(&e, project_id)
     }
 
     pub fn token(e: Env) -> Address {
         e.current_contract_address()
     }
 
-    pub fn balance(e: Env, user: Address,project_id: u32) -> i128 {
-        let recipient = get_recipient(&e,project_id);
-        if get_state(&e,project_id) == State::Annotating {
+    pub fn balance(e: Env, user: Address, project_id: u32) -> i128 {
+        let recipient = get_recipient(&e, project_id);
+        if get_state(&e, project_id) == State::Annotating {
             if user != recipient {
                 return 0;
             };
             return get_balance(&e, project_id);
         };
 
-        get_user_deposited(&e, &user,project_id)
+        get_user_deposited(&e, &user, project_id)
     }
 
     pub fn contribute(e: Env, user: Address, amount: i128, project_id: u32) {
         user.require_auth();
         assert!(amount > 0, "amount must be positive");
-        assert!(get_state(&e,project_id) == State::Funding, "sale is not running");
+        assert!(
+            get_state(&e, project_id) == State::Funding,
+            "sale is not running"
+        );
         let token_id = e.current_contract_address();
-        let current_target_met = target_reached(&e, &token_id,project_id);
+        let current_target_met = target_reached(&e, &token_id, project_id);
 
-        let balance = get_user_deposited(&e, &user,project_id);
-        set_user_deposited(&e, &user, &(balance + amount),project_id);
-        
+        let balance = get_user_deposited(&e, &user, project_id);
+        set_user_deposited(&e, &user, &(balance + amount), project_id);
+
         let client = token::Client::new(&e, &token_id);
         client.transfer(&user, &e.current_contract_address(), &amount);
-        let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
-        let current_contributions = project.contributors_contribution_map.get(user.clone()).unwrap_or(0);
-        project.contributors_contribution_map.set(user.clone(), current_contributions + &amount);
-        e.storage().instance().set(&DataKey::Project(project_id), &project);
-                
+        let mut project = e
+            .storage()
+            .instance()
+            .get::<_, Project>(&DataKey::Project(project_id))
+            .unwrap();
+        let current_contributions = project
+            .contributors_contribution_map
+            .get(user.clone())
+            .unwrap_or(0);
+        project
+            .contributors_contribution_map
+            .set(user.clone(), current_contributions + &amount);
+        e.storage()
+            .instance()
+            .set(&DataKey::Project(project_id), &project);
+
         let contract_balance = get_balance(&e, project_id);
 
         // emit events
         events::pledged_amount_changed(&e, contract_balance);
-        if !current_target_met && target_reached(&e, &token_id,project_id) {
+        if !current_target_met && target_reached(&e, &token_id, project_id) {
             // only emit the target reached event once on the pledge that triggers target to be met
-            events::target_reached(&e, contract_balance, get_target_amount(&e,project_id));
+            events::target_reached(&e, contract_balance, get_target_amount(&e, project_id));
         }
     }
 
     pub fn get_name(e: Env, project_id: u32) -> Symbol {
-        let project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
+        let project = e
+            .storage()
+            .instance()
+            .get::<_, Project>(&DataKey::Project(project_id))
+            .unwrap();
         project.name
     }
 
     pub fn get_description(e: Env, project_id: u32) -> Symbol {
-        let project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
+        let project = e
+            .storage()
+            .instance()
+            .get::<_, Project>(&DataKey::Project(project_id))
+            .unwrap();
         project.description
     }
 
-
-    pub fn submit(e: Env, to: Address,  data_point_cid: Symbol, posy: u32, posx: u32, width: u32, height: u32, label: Symbol, project_id: u32) {
+    pub fn submit(
+        e: Env,
+        to: Address,
+        data_point_cid: Symbol,
+        posy: u32,
+        posx: u32,
+        width: u32,
+        height: u32,
+        label: Symbol,
+        project_id: u32,
+    ) {
         to.require_auth();
-        let state = get_state(&e,project_id);
+        let state = get_state(&e, project_id);
 
         match state {
             State::Funding => {
@@ -312,32 +397,38 @@ impl DataAnnotate {
             }
             State::Annotating => {
                 // Do some checks to make sure the user has annotated.
-                
+
                 assert!(label != Symbol::new(&e, ""), "label cannot be empty");
-                let mut project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
+                let mut project = e
+                    .storage()
+                    .instance()
+                    .get::<_, Project>(&DataKey::Project(project_id))
+                    .unwrap();
                 let mut data_point = project.data_points.get(data_point_cid.clone()).unwrap();
                 data_point.annotated = true;
-                data_point.annotations.push_back(
-                    Annotation {
+                data_point.annotations.push_back(Annotation {
                     annotator: to.clone(),
                     posx: posx,
                     posy: posy,
                     width: width,
                     height: height,
-                    label: label});
+                    label: label,
+                });
 
                 project.data_points.set(data_point_cid, data_point);
 
-                e.storage().instance().set(&DataKey::Project(project_id), &project);
+                e.storage()
+                    .instance()
+                    .set(&DataKey::Project(project_id), &project);
                 transfer(&e, &to, &1);
                 // check balance after transfer and if it's 0, we change state.
-                get_state(&e,project_id);
+                get_state(&e, project_id);
             }
             State::Success => {
                 // Do some checks to make sure the user has annotated.
-               
-                let balance = get_user_deposited(&e, &to,project_id);
-                set_user_deposited(&e, &to, &0,project_id);
+
+                let balance = get_user_deposited(&e, &to, project_id);
+                set_user_deposited(&e, &to, &0, project_id);
                 transfer(&e, &to, &balance);
                 let token_id = e.current_contract_address();
                 let contract_balance = get_balance(&e, project_id);
@@ -350,10 +441,10 @@ impl DataAnnotate {
     }
 
     pub fn withdraw(e: Env, user: Address, project_id: u32) {
-        assert!(get_state(&e,project_id) == State::Expired, "not expired");
+        assert!(get_state(&e, project_id) == State::Expired, "not expired");
         user.require_auth();
-        let balance = get_user_deposited(&e, &user,project_id);
-        set_user_deposited(&e, &user, &0,project_id);
+        let balance = get_user_deposited(&e, &user, project_id);
+        set_user_deposited(&e, &user, &0, project_id);
         transfer(&e, &user, &balance);
     }
 }
