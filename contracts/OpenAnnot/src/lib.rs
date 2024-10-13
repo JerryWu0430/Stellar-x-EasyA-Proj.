@@ -291,6 +291,17 @@ impl DataAnnotate {
         }
     }
 
+    pub fn get_name(e: Env, project_id: u32) -> Symbol {
+        let project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
+        project.name
+    }
+
+    pub fn get_description(e: Env, project_id: u32) -> Symbol {
+        let project = e.storage().instance().get::<_, Project>(&DataKey::Project(project_id)).unwrap();
+        project.description
+    }
+
+
     pub fn submit(e: Env, to: Address,  data_point_cid: Symbol, posy: u32, posx: u32, width: u32, height: u32, label: Symbol, project_id: u32) {
         to.require_auth();
         let state = get_state(&e,project_id);
