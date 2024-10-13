@@ -6,13 +6,9 @@ OpenAnnot is revolutionizing data annotation by leveraging blockchain technology
 
 This is the repository to our [Front End] (https://github.com/gabikreal1/stellar_flutter_frontend)
 
-## Screenshots
+## Demo Video
 
-[Insert your screenshots here]
-
-## How It Works
-
-[Insert your Loom video explaining the project here]
+OUR VIDEO GOES HERE
 
 ## Table of Contents
 
@@ -91,14 +87,6 @@ OpenAnnott integrates Stellar blockchain technology in several key ways:
 4. Enterprise Partnership Program
 5. Cross GPU Machine Learning Trainning
 6. Open-Source LLM trained by OpenAnnot Dataset
-
-## Installation
-
-[Provide installation instructions here]
-
-## Usage
-
-[Provide usage instructions here]
 
 ## Contributing
 
