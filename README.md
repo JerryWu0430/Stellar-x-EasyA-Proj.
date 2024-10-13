@@ -2,9 +2,9 @@
 
 OpenAnnot is revolutionizing data annotation by leveraging blockchain technology, smart contracts, and decentralized storage. Our platform facilitates transparent, scalable data labeling while making annotated data accessible to all, fostering innovation and driving social change.
 
-## Demo Video
+## Demo (Front End)
 
-[Insert your demo video here]
+This is the repository to our [Front End] (https://github.com/gabikreal1/stellar_flutter_frontend)
 
 ## Screenshots
 
