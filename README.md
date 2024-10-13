@@ -8,7 +8,9 @@ This is the repository to our [Front End] (https://github.com/gabikreal1/stellar
 
 ## Demo Video
 
-OUR VIDEO GOES HERE
+https://github.com/user-attachments/assets/eac1fbde-de5e-498a-b484-1d4fff30506d
+
+
 
 ## Table of Contents
 
