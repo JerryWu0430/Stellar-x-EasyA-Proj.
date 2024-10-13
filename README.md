@@ -1,5 +1,3 @@
-# Stellar-x-EasyA-Proj.
-
 # OpenAnnot: Decentralized Data Annotation & Storage for Social Good
 
 OpenAnnot is revolutionizing data annotation by leveraging blockchain technology, smart contracts, and decentralized storage. Our platform facilitates transparent, scalable data labeling while making annotated data accessible to all, fostering innovation and driving social change.
@@ -87,14 +85,12 @@ OpenAnnott integrates Stellar blockchain technology in several key ways:
 
 ## Future Roadmap
 
-1. AI-Assisted Annotation Tools
-2. Global Annotator Network Expansion
-3. Blockchain-Powered Data Marketplace
-4. Advanced Charity Impact Tracking
-5. Enterprise Partnership Program
-6. Mobile App Development
-7. Research Collaboration Initiative
-8. Sustainable Computing Infrastructure
+1. Cross Labelling Data
+2. AI Assisted Annotation Tool
+3. Veracity Validation Algorithm
+4. Enterprise Partnership Program
+5. Cross GPU Machine Learning Trainning
+6. Open-Source LLM trained by OpenAnnot Dataset
 
 ## Installation
 
@@ -106,7 +102,7 @@ OpenAnnott integrates Stellar blockchain technology in several key ways:
 
 ## Contributing
 
-We welcome contributions to OpenAnnot! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
+Gabriel Bandman, Rohan Kumar, Jerry Wu
 
 ## License
 
