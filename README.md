@@ -11,6 +11,10 @@ This is the repository to our [Front End] (https://github.com/gabikreal1/stellar
 https://github.com/user-attachments/assets/eac1fbde-de5e-498a-b484-1d4fff30506d
 
 
+https://github.com/user-attachments/assets/bd82480e-2777-4db6-92da-31b56518c38b
+
+
+
 
 ## Table of Contents
 
